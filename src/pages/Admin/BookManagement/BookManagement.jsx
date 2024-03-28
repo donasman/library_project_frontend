@@ -12,7 +12,7 @@ import { storage } from "../../../apis/firebase/config/firebaseConfig";
 import {v4 as uuid} from "uuid";
 import { upload } from "@testing-library/user-event/dist/upload";
 import RightTopButton from "../../../components/RightTopButton/RightTopButton";
-import { registerBook } from "../../../apis/api/bookApi";
+import { registerBook, updateBookRequest } from "../../../apis/api/bookApi";
 import AdminBookSearch from "../../../components/AdminBookSearch/AdminBookSearch";
 import { useRecoilState } from "recoil";
 import { selectedBookState } from "../../../atoms/adminSelectedBookAtom";
@@ -63,7 +63,7 @@ function BookManagement(props) {
                 setBookTypeOptions(() => response.data.map(bookType => {
                     return {
                         value: bookType.bookTypeId,
-                        label: bookType.bookTypeName
+                        label: bookType.bookTypeName 
                     }
                 }));
             },
@@ -89,7 +89,17 @@ function BookManagement(props) {
         ref.current.focus();
     };
 
-    
+    const updateBookMutation = useMutation({ // 도서 수정
+        mutationKey: "updateBookMutation",
+        mutationFn: updateBookRequest,
+        onSuccess: response => {
+            alert("수정완료.")
+            window.location.reload();
+        },
+        onError: error => {
+
+        }
+    })
 
     const submit = () => { // 0 = 선택, 1 = 추가, 2 = 수정, 3 = 삭제
         if(actionStatus === 1) {
@@ -103,12 +113,22 @@ function BookManagement(props) {
                 coverImgUrl: imgUrl.value
             });
         } else if(actionStatus === 2) {
-            
+            updateBookMutation.mutate({
+                bookId: bookId.value,
+                isbn: isbn.value,
+                bookTypeId: bookTypeId.value.value,
+                categoryId: categoryId.value.value,
+                bookName: bookName.value,
+                authorName: authorName.value,
+                publisherName: publisherName.value,
+                coverImgUrl: imgUrl.value
+            })
         } else if(actionStatus === 3) {
             setDelete(() => true);
         }
         cancel();
-    }
+    };
+
 
     const cancel = () => {
         bookId.setValue(() => 0);
