@@ -7,7 +7,7 @@ export const useBookRegisterInput = (enterFn, ref) => {
         if(!!e.target) {
             setValue(() => e.target.value);
         } else {
-            setValue(() => e.value);
+            setValue(() => e);
         }
         
     }
@@ -18,5 +18,5 @@ export const useBookRegisterInput = (enterFn, ref) => {
         }
     }
 
-    return { value, handleOnChange, handleOnKeyDown, setValue };
+    return { value, handleOnChange, handleOnKeyDown, setValue};
 }

@@ -1,17 +1,17 @@
 /** @jsxImportSource @emotion/react */
 import * as s from "./style";
 import Select from "react-select";
-import { useQuery, useQueryClient } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import { useReactSelect } from "../../hooks/useReactSelect";
 import { useBookRegisterInput } from "../../hooks/useBookRegisterInput";
-import { getBookCountRequest, searchBooksRequest } from "../../apis/api/bookApi";
+import { deleteBooksRequest, getBookCountRequest, searchBooksRequest } from "../../apis/api/bookApi";
 import { useSearchParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import AdminBookSearchPageNumbers from "../AdminBookSearchPageNumbers/AdminBookSearchPageNumbers";
 import { useRecoilState } from "recoil";
 import { selectedBookState } from "../../atoms/adminSelectedBookAtom";
 
-function AdminBookSearch({ selectStyle, bookTypeOptions, categoryOptions }) {
+function AdminBookSearch({ selectStyle, bookTypeOptions, categoryOptions, isDelete, setDelete }) {
     const [ searchParams, setSearchParams ] = useSearchParams();
     const searchCount = 20;
     const [ bookList, setBookList ] = useState([]);
@@ -22,7 +22,7 @@ function AdminBookSearch({ selectStyle, bookTypeOptions, categoryOptions }) {
     const [ selectedBook, setSelectedBook ] = useRecoilState(selectedBookState);
     const [ lastCheckBookId, setLastCheckBookId ] = useState(0);
 
-    const searchBooksQuery = useQuery(
+    const searchBooksQuery = useQuery( // 북 db 검색
         ["searchBooksQuery", searchParams.get("page")],
         async () => await searchBooksRequest({
             page: searchParams.get("page"),
@@ -45,7 +45,7 @@ function AdminBookSearch({ selectStyle, bookTypeOptions, categoryOptions }) {
         }
     );
 
-    const getBookCountQuery = useQuery(
+    const getBookCountQuery = useQuery( // 북 타입 가져오기
         ["getBookCountQuery", searchBooksQuery.data],
         async () => await getBookCountRequest({
             count: searchCount,
@@ -61,6 +61,28 @@ function AdminBookSearch({ selectStyle, bookTypeOptions, categoryOptions }) {
             }
         }
     );
+
+    const deleteBooksMutation = useMutation({ // 카테고리 가져오기
+       mutationKey: "deleteBooksMutation",
+       mutationFn: deleteBooksRequest,
+       onSuccess: response => {
+            alert("삭제완료.");
+            window.location.replace("/admin/book/management?page=1");
+       },
+       onError: error => {
+
+       }
+
+    });
+
+    useEffect(() => {
+        if(isDelete) {
+            const deleteBooks = bookList.filter(book => book.checked).map(book => book.bookId);
+            deleteBooksMutation.mutate(deleteBooks);
+            console.log(deleteBooks)
+        }
+        setDelete(() => false);
+    }, [isDelete])
 
     const searchSubmit = () => {
         setSearchParams({
